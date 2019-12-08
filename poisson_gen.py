@@ -63,25 +63,14 @@ class Poisson2D:
             # check if inside target shape
             # if not self.__isInRectangle(trial_pos[0], trial_pos[1]):
             #     continue
-            if not self.__isInCircle(trial_pos[0], trial_pos[1]):
-                continue
+            # if not self.__isInCircle(trial_pos[0], trial_pos[1]):
+            #     continue
             if self.__isOccupied(trial_index):
                 continue
-            flag_good_pos = True
+            
             # check the neighbor of the trial position
-            for i in range(-1,2):
-                for j in range(-1,2):
-                    if self.__isInside(trial_row+i, trial_col+j):
-                        check_index = self.__coord2Index(trial_row+i, trial_col+j)
-                        # check if inside target shape
-                        # if not self.__isInRectangle(self.grid[check_index,0], self.grid[check_index,1]):
-                        #     continue
-                        if not self.__isInCircle(self.grid[check_index,0], self.grid[check_index,1]):
-                            continue
-                        if self.__isOccupied(check_index):
-                            dist = np.linalg.norm(trial_pos - self.grid[check_index])
-                            if dist < self.__sep:
-                                flag_good_pos = False
+            flag_good_pos = self.__isNeighborGood(trial_row, trial_col, trial_pos)
+
             if flag_good_pos:
                 self.grid[trial_index] = trial_pos
                 self.index_all.append(trial_index)
@@ -101,15 +90,26 @@ class Poisson2D:
             return True
 
     def __isInside(self, row, col):
-        if row < self.__ngrid and row > 0 and col < self.__ngrid and col > 0:
+        if row < self.__ngrid and row >= 0 and col < self.__ngrid and col >= 0:
             return True
         else:
             return False        
+    
+    def __isNeighborGood(self, row, col, pos):
+        for i in range(-1,2):
+            for j in range(-1,2):
+                if self.__isInside(row+i, col+j):
+                    check_index = self.__coord2Index(row+i, col+j)
+                    if self.__isOccupied(check_index):
+                        dist = np.linalg.norm(pos - self.grid[check_index])
+                        if dist < self.__sep:
+                            return False
+        return True
 
     def __isInRectangle(self, x, y):
         b_length = 1.0
         b_width = 0.5
-        if x >= 0 and x <= b_length and y >= 0 and y < b_width:
+        if x >= 0 and x <= b_length and y >= 0 and y <= b_width:
             return True
         else:
             return False
@@ -134,5 +134,5 @@ class Poisson2D:
 
 
 if __name__ == "__main__":
-    dots = Poisson2D(0.01)
+    dots = Poisson2D(0.05)
     dots.generate()
